@@ -3,15 +3,11 @@
 	let { children } = $props();
 	import { supabase } from '$lib/supabase';
 	import { onMount } from 'svelte';
-	import { writable } from 'svelte/store';
 
-	import type { User } from '@supabase/supabase-js';
+	import { fetchUser, logout, user } from '$lib/stores';
 
-	const user = writable<User | null>(null);
-
-	onMount(async () => {
-		const { data: session } = await supabase.auth.getSession();
-		user.set(session?.session?.user || null);
+	onMount(() => {
+		fetchUser();
 	});
 
 	async function signInWithDiscord() {
@@ -24,8 +20,7 @@
 
 	async function signOut() {
 		try {
-			await supabase.auth.signOut();
-			user.set(null);
+			logout();
 		} catch (error) {
 			console.error('Error signing out:', error);
 		}
@@ -35,6 +30,11 @@
 <nav class="navbar bg-base-100">
 	<div class="flex-1">
 		<a href="/" class="btn btn-ghost text-xl normal-case">ShitBeforeGTA6</a>
+	</div>
+	<div class="alert alert-warning shadow-lg">
+		<div>
+			<span>This site is under development. Expect bugs!</span>
+		</div>
 	</div>
 	<div class="flex-none">
 		{#if $user}
@@ -53,17 +53,18 @@
 					class="menu-compact menu dropdown-content mt-3 w-52 rounded-box bg-base-100 p-2 shadow"
 				>
 					<li>
-						<a on:click={signOut}>Logout</a>
+						<button type="button" onclick={signOut}>Logout</button>
 					</li>
 				</ul>
 			</div>
 		{:else}
-			<button class="btn btn-primary" type="button" on:click={signInWithDiscord}
+			<button class="btn btn-primary" type="button" onclick={signInWithDiscord}
 				>Sign in with Discord</button
 			>
 		{/if}
 	</div>
 </nav>
+
 <main>
 	{@render children()}
 </main>

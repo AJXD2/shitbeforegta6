@@ -3,6 +3,7 @@ export type PostType = {
 		user_id: string;
 		title: string;
 		content: string;
+		votes: number;
 		media_url?: string;
 		media_type?: 'image' | 'youtube';
 		created_at?: string;

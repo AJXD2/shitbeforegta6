@@ -1,31 +1,55 @@
 <script lang="ts">
-	import type { PostType, UserType } from '$lib';
+	import type { PostType } from '$lib';
+	import { user } from '$lib/stores';
 	import { supabase } from '$lib/supabase';
+
 	export let onCreatePost: (post: PostType) => void;
 
-	import { onMount } from 'svelte';
-	import { writable } from 'svelte/store';
 	let title = '';
 	let content = '';
 	let media_url = '';
 	let media_type: 'image' | 'youtube' | undefined = undefined;
+	let file: File | null = null;
 
-	let user = writable<UserType | null>(null);
+	const handleFileChange = (event: Event) => {
+		const target = event.target as HTMLInputElement;
+		file = target.files ? target.files[0] : null;
+	};
 
-	onMount(() => {
-		supabase.auth.getUser().then((user) => {
-			user = user;
-		});
-	});
+	const uploadImage = async () => {
+		if (!file) return null;
+
+		const fileName = `${Date.now()}-${file.name}`;
+		const { data, error } = await supabase.storage.from(`uploads`).upload(fileName, file);
+
+		if (error) {
+			console.error('Error uploading image:', error.message);
+			alert('Failed to upload image');
+			return null;
+		}
+
+		// Return the public URL of the uploaded file
+		return supabase.storage.from('uploads').getPublicUrl(data.path).data.publicUrl;
+	};
 
 	const handleSubmit = async () => {
 		if (!title || !content) {
+			alert('Title and content are required!');
 			return;
 		}
 
-		if (media_url) {
+		if (file) {
+			media_url = (await uploadImage()) || '';
+			media_type = 'image';
+		} else if (media_url) {
 			if (media_url.includes('youtube.com') || media_url.includes('youtu.be')) {
 				media_type = 'youtube';
+				let youtubeId = media_url.split('v=')[1];
+				const queryPosition = youtubeId?.indexOf('?');
+				if (queryPosition !== -1) {
+					youtubeId = youtubeId.substring(0, queryPosition);
+				}
+				media_url = youtubeId;
 			} else {
 				media_type = 'image';
 			}
@@ -33,13 +57,15 @@
 
 		const { data: userData } = await supabase.auth.getUser();
 		if (!userData || !userData.user?.id) {
+			alert('You must be logged in to create a post.');
 			return;
 		}
 
 		const newPost: PostType = {
-			user_id: userData.user?.id,
+			user_id: userData.user.id,
 			title,
 			content,
+			votes: 0,
 			media_url,
 			media_type
 		};
@@ -55,13 +81,14 @@
 		content = '';
 		media_url = '';
 		media_type = undefined;
+		file = null;
 	};
 </script>
 
-<div class="mx-auto max-w-xl rounded-lg p-4 shadow-lg">
-	<h2 class="mb-4 text-2xl font-semibold">Create a New Post</h2>
+<div class="mx-auto max-w-2xl rounded-lg bg-base-200 p-6 shadow-md">
+	<h2 class="mb-6 text-2xl font-semibold">Create a New Post</h2>
 
-	<div class="space-y-4">
+	<div class="space-y-6">
 		<!-- Title Input -->
 		<div class="form-control">
 			<label class="label" for="title">
@@ -89,10 +116,24 @@
 			></textarea>
 		</div>
 
+		<!-- Media Upload -->
+		<div class="form-control">
+			<label class="label" for="file">
+				<span class="label-text">Upload Image</span>
+			</label>
+			<input
+				type="file"
+				id="file"
+				accept="image/*"
+				on:change={handleFileChange}
+				class="file-input file-input-bordered w-full"
+			/>
+		</div>
+
 		<!-- Media URL Input -->
 		<div class="form-control">
 			<label class="label" for="media_url">
-				<span class="label-text">Media URL (Optional)</span>
+				<span class="label-text">Or Enter Media URL (Optional)</span>
 			</label>
 			<input
 				type="text"
@@ -101,19 +142,9 @@
 				class="input input-bordered w-full"
 				placeholder="Enter image or YouTube URL"
 			/>
-			{#if media_url}
-				<div class="mt-2 flex items-center space-x-2">
-					<label class="label" for="media_type">
-						<span class="label-text">Media Type</span>
-					</label>
-					<select id="media_type" bind:value={media_type} class="select select-bordered w-full">
-						<option value="image">Image</option>
-						<option value="youtube">YouTube</option>
-					</select>
-				</div>
-			{/if}
 		</div>
 
-		<button class="btn btn-info w-full" on:click={handleSubmit}> Create Post </button>
+		<!-- Submit Button -->
+		<button class="btn btn-primary w-full" on:click={handleSubmit}>Create Post</button>
 	</div>
 </div>

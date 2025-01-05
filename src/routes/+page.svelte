@@ -5,65 +5,95 @@
 	import type { PostType } from '$lib';
 	import Post from '$lib/components/Post.svelte';
 	import CreatePost from '$lib/components/CreatePost.svelte';
+	import Icon from '@iconify/svelte';
+	import { user } from '$lib/stores';
+
 	const posts = writable<PostType[]>([]);
-
-	onMount(async () => {
-		posts.set(await getAllPosts());
-	});
 	let showModal = false;
-
 	let searchQuery = '';
 
+	onMount(async () => {
+		const allPosts = await getAllPosts();
+		posts.set(allPosts);
+	});
+
 	async function handleSearch() {
-		const search = searchQuery.toLowerCase();
-		if (search === '') {
+		const query = searchQuery.trim().toLowerCase();
+		if (!query) {
 			posts.set(await getAllPosts());
 		} else {
-			posts.update((posts) => {
-				return posts.filter((post) => {
-					return (
-						post.title.toLowerCase().includes(search) || post.content.toLowerCase().includes(search)
-					);
-				});
-			});
+			posts.update((currentPosts) =>
+				currentPosts.filter(
+					(post) =>
+						post.title.toLowerCase().includes(query) || post.content.toLowerCase().includes(query)
+				)
+			);
 		}
+	}
+
+	function closeModal() {
+		showModal = false;
 	}
 </script>
 
 {#if showModal}
 	<div class="modal modal-open">
-		<div class="modal-box">
+		<div class="modal-box w-11/12 max-w-2xl p-4">
 			<CreatePost
 				onCreatePost={(post) => {
-					posts.update((posts) => [post, ...posts]);
-					showModal = false;
+					posts.update((existingPosts) => [post, ...existingPosts]);
+					closeModal();
 				}}
 			/>
 			<div class="modal-action">
-				<button class="btn" on:click={() => (showModal = false)}>Close</button>
+				<button class="btn btn-primary" on:click={closeModal}>Close</button>
 			</div>
 		</div>
 	</div>
 {/if}
 
-<main class="container mx-auto my-8">
-	<div class="flex items-center justify-between">
-		<div class="form-control w-full max-w-xs">
-			<div class="input-group">
+<main class="container mx-auto min-h-screen px-4 py-6">
+	<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+		<div class="form-control w-full flex-row sm:max-w-xs">
+			<div class="input-group flex w-full flex-row items-center">
 				<input
 					type="text"
-					placeholder="Search…"
+					placeholder="Search..."
 					class="input input-bordered w-full"
 					bind:value={searchQuery}
 					on:input={handleSearch}
 				/>
 			</div>
 		</div>
-		<button class="btn btn-primary" on:click={() => (showModal = true)}>Create Submission</button>
+		{#if $user}
+			<button
+				class="btn btn-primary flex w-full items-center gap-2 sm:w-auto"
+				on:click={() => (showModal = true)}
+			>
+				<Icon icon="material-symbols:add" class="h-5 w-5" />
+				<span>Create Submission</span>
+			</button>
+		{:else}
+			<div class="tooltip w-full sm:w-auto" data-tip="You must be logged in to create a submission">
+				<button class="btn btn-disabled flex w-full items-center gap-2 sm:w-auto">
+					<Icon icon="material-symbols:add" class="h-5 w-5" />
+					<span>Create Submission</span>
+				</button>
+			</div>
+		{/if}
 	</div>
-	<div class="grid grid-cols-1 gap-4 pt-16 md:grid-cols-2 lg:grid-cols-3">
-		{#each $posts as post}
+
+	<div class="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+		{#each $posts as post (post.id)}
 			<Post {post} />
 		{/each}
 	</div>
+
+	<footer class="mt-8 text-center text-sm text-gray-500">
+		<p>
+			Made with ❤️ by
+			<a href="https://ajxd2.dev" class="hover:text-primary" target="_blank" rel="noopener">AJXD2</a
+			>
+		</p>
+	</footer>
 </main>
