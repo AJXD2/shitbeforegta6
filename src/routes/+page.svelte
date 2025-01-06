@@ -49,7 +49,7 @@
 
 {#if showModal}
 	<div class="modal modal-open">
-		<div class="modal-box w-11/12 max-w-2xl p-4">
+		<div class="modal-box w-11/12 max-w-2xl bg-base-100 shadow-xl">
 			<CreatePost
 				onCreatePost={(post) => {
 					posts.update((existingPosts) => [post, ...existingPosts]);
@@ -63,39 +63,37 @@
 	</div>
 {/if}
 
-<main class="container mx-auto min-h-screen px-4 py-6">
-	<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-		<div class="form-control w-full flex-row sm:max-w-xs">
-			<div class="input-group flex w-full flex-row items-center">
+<main class="container mx-auto min-h-screen bg-base-200 px-6 py-8">
+	<div class="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+		<div class="form-control w-full sm:max-w-xs">
+			<div class="input-group">
 				<input
 					type="text"
-					placeholder="Search..."
+					placeholder="Search posts..."
 					class="input input-bordered w-full"
 					bind:value={searchQuery}
 					on:input={handleSearch}
 				/>
 			</div>
 		</div>
-		<button
-			class="btn btn-primary flex w-full items-center gap-2 sm:w-auto"
-			on:click={handleCreatePost}
-		>
+		<button class="btn btn-primary flex items-center gap-2 sm:w-auto" on:click={handleCreatePost}>
 			<Icon icon="material-symbols:add" class="h-5 w-5" />
-			<span>Create Submission</span>
+			Create Post
 		</button>
 	</div>
 
-	<div class="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+	<div class="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
 		{#each $posts as post (post.id)}
 			<Post {post} />
 		{/each}
 	</div>
 
-	<footer class="mt-8 text-center text-sm text-gray-500">
+	<footer class="mt-12 text-center text-sm text-base-content">
 		<p>
 			Made with ❤️ by
-			<a href="https://ajxd2.dev" class="hover:text-primary" target="_blank" rel="noopener">AJXD2</a
-			>
+			<a href="https://ajxd2.dev" class="link link-primary" target="_blank" rel="noopener">
+				AJXD2
+			</a>
 		</p>
 	</footer>
 </main>
