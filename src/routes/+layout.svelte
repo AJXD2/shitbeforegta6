@@ -34,54 +34,59 @@
 	});
 </script>
 
-<div class="toast toast-end toast-bottom z-50 space-y-4">
-	{#each $flashMessages as { id, text, type, icon } (id)}
-		<div class={`alert alert-${type} flex items-center shadow-lg`}>
-			{#if icon}
-				<Icon {icon} class="mr-2 h-6 w-6" />
-			{/if}
-			<span>{text}</span>
-		</div>
-	{/each}
+<!-- Persistent Warning Banner -->
+<div
+	class="fixed left-0 right-0 top-0 z-50 flex items-center justify-center gap-2 bg-warning py-2 text-warning-content shadow-md"
+>
+	<Icon icon="material-symbols:warning" class="h-5 w-5" />
+	<span>This site is under development. Expect bugs!</span>
 </div>
-<nav class="navbar bg-base-100">
+
+<!-- Navbar -->
+<nav class="navbar mt-12 bg-base-100 shadow-lg">
 	<div class="flex-1">
-		<a href="/" class="btn btn-ghost text-xl normal-case">ShitBeforeGTA6</a>
-	</div>
-	<div class="alert alert-warning shadow-lg">
-		<div>
-			<span>This site is under development. Expect bugs!</span>
-		</div>
+		<a href="/" class="btn btn-ghost text-xl font-bold normal-case text-primary">
+			ShitBeforeGTA6
+		</a>
 	</div>
 	<div class="flex-none">
 		{#if $user}
 			<div class="dropdown dropdown-end">
-				<label for="user-avatar" tabindex="-1" class="avatar btn btn-circle btn-ghost">
-					<div class="w-10 rounded-full">
-						<img
-							id="user-avatar"
-							src={$user.user_metadata?.avatar_url || '/default-avatar.png'}
-							alt="User Avatar"
-						/>
+				<label tabindex="-1" for="avatar" class="avatar btn btn-circle btn-ghost">
+					<div class="w-10 rounded-full" id="avatar">
+						<img src={$user.user_metadata?.avatar_url || '/default-avatar.png'} alt="User Avatar" />
 					</div>
 				</label>
 				<ul
 					tabindex="-1"
-					class="menu-compact menu dropdown-content mt-3 w-52 rounded-box bg-base-100 p-2 shadow"
+					class="menu dropdown-content mt-3 w-52 rounded-box bg-base-100 p-2 shadow"
 				>
 					<li>
-						<button type="button" onclick={signOut}>Logout</button>
+						<button type="button" class="text-left" onclick={signOut}>Logout</button>
 					</li>
 				</ul>
 			</div>
 		{:else}
-			<button class="btn btn-primary" type="button" onclick={signInWithDiscord}
-				>Sign in with Discord</button
-			>
+			<button class="btn btn-primary" type="button" onclick={signInWithDiscord}>
+				Sign in with Discord
+			</button>
 		{/if}
 	</div>
 </nav>
 
-<main>
+<!-- Main Content -->
+<main class="container mx-auto min-h-screen bg-base-200 px-6 py-8">
 	{@render children()}
 </main>
+
+<!-- Toast Notifications -->
+<div class="toast toast-end toast-bottom z-50 space-y-4">
+	{#each $flashMessages as { id, text, type, icon } (id)}
+		<div class={`alert alert-${type} flex items-center gap-2 shadow-lg`}>
+			{#if icon}
+				<Icon {icon} class="h-6 w-6 text-base-content" />
+			{/if}
+			<span class="text-base-content">{text}</span>
+		</div>
+	{/each}
+</div>
