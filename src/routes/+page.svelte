@@ -6,7 +6,7 @@
 	import Post from '$lib/components/Post.svelte';
 	import CreatePost from '$lib/components/CreatePost.svelte';
 	import Icon from '@iconify/svelte';
-	import { user } from '$lib/stores';
+	import { flashMessages, user } from '$lib/stores';
 
 	const posts = writable<PostType[]>([]);
 	let showModal = false;
@@ -33,6 +33,17 @@
 
 	function closeModal() {
 		showModal = false;
+	}
+
+	function handleCreatePost() {
+		if ($user === null) {
+			flashMessages.update((messages) => [
+				...messages,
+				{ id: Date.now(), text: 'You must be logged in to create a post.', type: 'error' }
+			]);
+		} else {
+			showModal = true;
+		}
 	}
 </script>
 
@@ -65,22 +76,13 @@
 				/>
 			</div>
 		</div>
-		{#if $user}
-			<button
-				class="btn btn-primary flex w-full items-center gap-2 sm:w-auto"
-				on:click={() => (showModal = true)}
-			>
-				<Icon icon="material-symbols:add" class="h-5 w-5" />
-				<span>Create Submission</span>
-			</button>
-		{:else}
-			<div class="tooltip w-full sm:w-auto" data-tip="You must be logged in to create a submission">
-				<button class="btn btn-disabled flex w-full items-center gap-2 sm:w-auto">
-					<Icon icon="material-symbols:add" class="h-5 w-5" />
-					<span>Create Submission</span>
-				</button>
-			</div>
-		{/if}
+		<button
+			class="btn btn-primary flex w-full items-center gap-2 sm:w-auto"
+			on:click={handleCreatePost}
+		>
+			<Icon icon="material-symbols:add" class="h-5 w-5" />
+			<span>Create Submission</span>
+		</button>
 	</div>
 
 	<div class="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

@@ -4,7 +4,8 @@
 	import { supabase } from '$lib/supabase';
 	import { onMount } from 'svelte';
 
-	import { fetchUser, logout, user } from '$lib/stores';
+	import { fetchUser, flashMessages, logout, user } from '$lib/stores';
+	import Icon from '@iconify/svelte';
 
 	onMount(() => {
 		fetchUser();
@@ -25,8 +26,24 @@
 			console.error('Error signing out:', error);
 		}
 	}
+
+	flashMessages.subscribe((messages) => {
+		if (messages.length > 3) {
+			messages.shift();
+		}
+	});
 </script>
 
+<div class="toast toast-end toast-bottom z-50 space-y-4">
+	{#each $flashMessages as { id, text, type, icon } (id)}
+		<div class={`alert alert-${type} flex items-center shadow-lg`}>
+			{#if icon}
+				<Icon {icon} class="mr-2 h-6 w-6" />
+			{/if}
+			<span>{text}</span>
+		</div>
+	{/each}
+</div>
 <nav class="navbar bg-base-100">
 	<div class="flex-1">
 		<a href="/" class="btn btn-ghost text-xl normal-case">ShitBeforeGTA6</a>

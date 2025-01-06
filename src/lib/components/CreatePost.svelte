@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PostType } from '$lib';
-	import { user } from '$lib/stores';
+	import { addFlashMessage, user } from '$lib/stores';
 	import { supabase } from '$lib/supabase';
 
 	export let onCreatePost: (post: PostType) => void;
@@ -24,22 +24,37 @@
 
 		if (error) {
 			console.error('Error uploading image:', error.message);
-			alert('Failed to upload image');
+			addFlashMessage({
+				text: 'Failed to upload image (Check console)',
+				type: 'error',
+				icon: 'mdi:alert-circle-outline'
+			});
 			return null;
 		}
 
-		// Return the public URL of the uploaded file
 		return supabase.storage.from('uploads').getPublicUrl(data.path).data.publicUrl;
 	};
 
 	const handleSubmit = async () => {
 		if (!title || !content) {
-			alert('Title and content are required!');
+			addFlashMessage({
+				text: 'Title and content are required',
+				type: 'error',
+				icon: 'mdi:alert-circle-outline'
+			});
 			return;
 		}
 
 		if (file) {
 			media_url = (await uploadImage()) || '';
+			if (!media_url) {
+				addFlashMessage({
+					text: 'Failed to create post. (File)',
+					type: 'error',
+					icon: 'mdi:alert-circle-outline'
+				});
+				return;
+			}
 			media_type = 'image';
 		} else if (media_url) {
 			if (media_url.includes('youtube.com') || media_url.includes('youtu.be')) {
@@ -57,7 +72,11 @@
 
 		const { data: userData } = await supabase.auth.getUser();
 		if (!userData || !userData.user?.id) {
-			alert('You must be logged in to create a post.');
+			addFlashMessage({
+				text: 'You must be logged in to create a post',
+				type: 'error',
+				icon: 'mdi:alert-circle-outline'
+			});
 			return;
 		}
 
@@ -72,7 +91,11 @@
 
 		const { error } = await supabase.from('posts').insert(newPost);
 		if (error) {
-			alert('Error creating post: ' + error.message);
+			addFlashMessage({
+				text: 'Failed to create post',
+				type: 'error',
+				icon: 'mdi:alert-circle-outline'
+			});
 			return;
 		}
 

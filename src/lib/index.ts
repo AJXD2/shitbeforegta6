@@ -1,3 +1,5 @@
+import type { SvelteComponent } from "svelte";
+
 export type PostType = {
 		id?: number;
 		user_id: string;
@@ -15,3 +17,10 @@ export type UserType = {
         full_name: string;
         updated_at: string;
 }
+
+export type FlashMessage = {
+    id?: number; 
+    text: string; 
+    type: 'success' | 'error' | 'info' | 'warning'; 
+	icon?: string;
+};
