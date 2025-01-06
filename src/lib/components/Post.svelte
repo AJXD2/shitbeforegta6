@@ -7,6 +7,7 @@
 	import { writable } from 'svelte/store';
 	import Icon from '@iconify/svelte';
 	import UserChip from './UserChip.svelte';
+
 	const user = writable<UserType | null>(null);
 
 	onMount(async () => {
@@ -22,18 +23,19 @@
 		}
 	});
 
-	let upvoted = false;
-	let downvoted = false;
+	let userVote: 'up' | 'down' | null = null;
 
-	const upvote = () => {
-		post.votes++;
-		upvoted = true;
-		downvoted = false;
-	};
-	const downvote = () => {
-		post.votes--;
-		downvoted = true;
-		upvoted = false;
+	// Handle voting logic
+	const handleVote = (voteType: 'up' | 'down') => {
+		if (voteType === userVote) {
+			// Undo current vote
+			post.votes += voteType === 'up' ? -1 : 1;
+			userVote = null;
+		} else {
+			// Switch/add vote
+			post.votes += voteType === 'up' ? (userVote === 'down' ? 2 : 1) : userVote === 'up' ? -2 : -1;
+			userVote = voteType;
+		}
 	};
 </script>
 
@@ -58,6 +60,7 @@
 			></iframe>
 		{/if}
 	{/if}
+
 	<div class="card-body p-6">
 		<UserChip {user} date={post.created_at || ''} />
 		<h2 class="card-title text-xl font-bold text-secondary">{post.title}</h2>
@@ -65,19 +68,21 @@
 
 		<div class="mt-6 flex w-full flex-row items-center justify-center gap-6 text-lg">
 			<button
-				class="btn {upvoted
-					? 'btn-disabled'
-					: 'btn-primary'} btn-sm rounded-full px-4 py-2 transition-all"
-				on:click={upvoted ? undefined : upvote}
+				class={`btn btn-sm rounded-full px-4 py-2 transition-all ${
+					userVote === 'up' ? 'bg-green-700 text-white' : 'btn-primary'
+				}`}
+				on:click={() => handleVote('up')}
 			>
 				<Icon icon="mdi:thumb-up" /> Upvote
 			</button>
+
 			<span class="text-secondary">{post.votes}</span>
+
 			<button
-				class="btn {downvoted
-					? 'btn-disabled'
-					: 'btn-primary'} btn-sm rounded-full px-4 py-2 transition-all"
-				on:click={downvoted ? undefined : downvote}
+				class={`btn btn-sm rounded-full px-4 py-2 transition-all ${
+					userVote === 'down' ? 'bg-red-700 text-white' : 'btn-primary'
+				}`}
+				on:click={() => handleVote('down')}
 			>
 				<Icon icon="mdi:thumb-down" /> Downvote
 			</button>
