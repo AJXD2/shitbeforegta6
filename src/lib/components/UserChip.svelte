@@ -3,7 +3,7 @@
 	import type { Writable } from 'svelte/store';
 
 	export let user: Writable<UserType | null>;
-	export let date: string;
+	export let date: string | undefined = undefined;
 
 	function formatDate(dateString: string | undefined): string {
 		if (!dateString) return '';
@@ -34,6 +34,8 @@
 	</div>
 	<div>
 		<h3 class="text-lg font-semibold text-primary">{$user?.full_name || ''}</h3>
-		<p class="text-sm text-gray-500">{formatDate(date)}</p>
+		{#if date}
+			<p class="text-sm text-gray-500">{formatDate(date)}</p>
+		{/if}
 	</div>
 </div>

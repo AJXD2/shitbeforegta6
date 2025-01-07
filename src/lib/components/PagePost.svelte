@@ -105,16 +105,25 @@
 	};
 </script>
 
-<a href="/posts/{post.id}">
-	<article
-		class="card bg-base-100 shadow-lg transition-all duration-300 hover:shadow-xl dark:bg-neutral"
-	>
-		{#if post.media_url !== null}
+<div class="flex flex-col items-center bg-base-100 px-4 py-8 text-base-content md:px-12 lg:px-24">
+	<!-- Header -->
+	<section class="w-full max-w-5xl">
+		<header class="text-center">
+			<h1 class="mb-4 text-4xl font-bold text-primary md:text-5xl">{post.title}</h1>
+			<div class="flex items-center justify-center space-x-4 text-secondary">
+				<UserChip user={author} />
+			</div>
+		</header>
+	</section>
+
+	<!-- Media -->
+	{#if post.media_url}
+		<section class="my-6 w-full max-w-4xl">
 			{#if post.media_type === 'image'}
 				<img
 					src={post.media_url}
-					alt="Post"
-					class="h-auto w-full rounded-t-lg object-cover transition-all duration-300 hover:scale-105"
+					alt="Post Media"
+					class="w-full rounded-lg shadow-md transition-transform duration-300 hover:scale-105"
 				/>
 			{:else if post.media_type === 'youtube'}
 				<iframe
@@ -123,37 +132,63 @@
 					frameborder="0"
 					allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
 					allowfullscreen
-					class="h-64 w-full rounded-t-lg transition-all duration-300 hover:scale-105"
+					class="h-64 w-full rounded-lg shadow-md md:h-96"
 				></iframe>
 			{/if}
-		{/if}
+		</section>
+	{/if}
 
-		<div class="card-body p-6">
-			<UserChip user={author} date={post.created_at || ''} />
-			<h2 class="card-title text-xl font-bold text-secondary">{post.title}</h2>
-			<p class="mt-2 break-words text-secondary">{post.content}</p>
+	<!-- Content -->
+	<section class="w-full max-w-4xl">
+		<p class="text-lg leading-relaxed text-secondary md:text-xl">{post.content}</p>
+	</section>
 
-			<div class="mt-6 flex w-full flex-row items-center justify-center gap-6 text-lg">
-				<button
-					class={`btn btn-sm rounded-full px-4 py-2 transition-all ${
-						userVote === 'up' ? 'bg-green-700 text-white' : 'btn-primary'
-					}`}
-					on:click={() => handleVote('up')}
-				>
-					<Icon icon="mdi:thumb-up" /> Upvote
-				</button>
-
-				<span class="text-secondary">{$totalPostVotes}</span>
-
-				<button
-					class={`btn btn-sm rounded-full px-4 py-2 transition-all ${
-						userVote === 'down' ? 'bg-red-700 text-white' : 'btn-primary'
-					}`}
-					on:click={() => handleVote('down')}
-				>
-					<Icon icon="mdi:thumb-down" /> Downvote
-				</button>
+	<!-- Vote Section -->
+	<section class="mt-8 flex w-full max-w-4xl flex-col items-center">
+		<div class="flex items-center space-x-8">
+			<button
+				class={`btn btn-circle text-xl ${userVote === 'up' ? 'btn-success' : 'btn-secondary'}`}
+				on:click={() => handleVote('up')}
+			>
+				<Icon icon="mdi:thumb-up" class="h-6 w-6" />
+			</button>
+			<span class="text-2xl font-bold text-secondary">Votes: {$totalPostVotes}</span>
+			<button
+				class={`btn btn-circle text-xl ${userVote === 'down' ? 'btn-error' : 'btn-secondary'}`}
+				on:click={() => handleVote('down')}
+			>
+				<Icon icon="mdi:thumb-down" class="h-6 w-6" />
+			</button>
+		</div>
+	</section>
+	<!-- Comments Section -->
+	<section class="mt-8 flex w-full max-w-4xl flex-col items-center">
+		<div class="alert alert-warning flex items-center space-x-4 shadow-lg">
+			<div class="flex items-center space-x-4">
+				<Icon icon="mdi:alert-circle-outline" class="h-6 w-6" />
+				<span>Comment section isn't implemented yet.</span>
 			</div>
 		</div>
-	</article>
-</a>
+	</section>
+	<section class="mt-8 flex w-full max-w-4xl flex-col items-center">
+		<h2 class="text-2xl font-bold text-primary">Comments</h2>
+		<div class="w-full max-w-4xl">
+			<textarea
+				class="mt-4 w-full rounded-lg bg-base-200 p-4 text-lg text-secondary shadow-md"
+				placeholder="Write a comment..."
+			></textarea>
+			<button class="btn btn-primary mt-4">Post Comment</button>
+		</div>
+
+		<dir class="mt-8 w-full max-w-4xl">
+			<div class="flex items-center space-x-4">
+				<UserChip user={author} date={new Date(Date.now()).toUTCString()} />
+			</div>
+			<p class="mt-2 text-secondary">
+				Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam nec nunc nec nunc. Nullam
+				nec nunc nec nunc. Nullam nec nunc nec nunc. Nullam nec nunc nec nunc. Nullam nec nunc nec
+				nunc. Nullam nec nunc nec nunc. Nullam nec nunc nec
+			</p>
+		</dir>
+	</section>
+</div>
