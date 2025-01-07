@@ -84,7 +84,6 @@
 			user_id: userData.user.id,
 			title,
 			content,
-			votes: 0,
 			media_url,
 			media_type
 		};

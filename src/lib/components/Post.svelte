@@ -1,40 +1,106 @@
 <script lang="ts">
-	import type { PostType, UserType } from '$lib';
+	import type { PostType, PostVoteType, UserType } from '$lib';
 
 	export let post: PostType;
 	import { onMount } from 'svelte';
-	import { supabase } from '$lib/supabase';
+	import { getPostVotes, getUserProfile, supabase } from '$lib/supabase';
 	import { writable } from 'svelte/store';
 	import Icon from '@iconify/svelte';
 	import UserChip from './UserChip.svelte';
+	import { addFlashMessage, user } from '$lib/stores';
 
-	const user = writable<UserType | null>(null);
+	const author = writable<UserType | null>(null);
+	const votes = writable<PostVoteType[]>([]);
+	const totalPostVotes = writable<number>(0);
 
 	onMount(async () => {
-		const { data, error } = await supabase
-			.from('profiles')
-			.select('*')
-			.eq('id', post.user_id)
-			.single();
+		author.set(await getUserProfile(post.user_id));
+		if (!post.id) return;
+		const { votes: postVotes, totalVotes, error } = await getPostVotes(post.id);
 		if (error) {
-			console.error('Error fetching post user:', error);
-		} else {
-			user.set(data);
+			addFlashMessage({
+				text: 'Failed to fetch votes (Check console)',
+				type: 'error',
+				icon: 'mdi:alert-circle-outline'
+			});
+		}
+		votes.set(postVotes);
+		totalPostVotes.set(totalVotes);
+		for (const vote of postVotes) {
+			if (vote.user_id === $user?.id) {
+				userVote = vote.vote_type;
+				break;
+			}
 		}
 	});
 
 	let userVote: 'up' | 'down' | null = null;
 
 	// Handle voting logic
-	const handleVote = (voteType: 'up' | 'down') => {
+	const handleVote = async (voteType: 'up' | 'down') => {
 		if (voteType === userVote) {
 			// Undo current vote
-			post.votes += voteType === 'up' ? -1 : 1;
+			$totalPostVotes += voteType === 'up' ? -1 : 1;
 			userVote = null;
 		} else {
 			// Switch/add vote
-			post.votes += voteType === 'up' ? (userVote === 'down' ? 2 : 1) : userVote === 'up' ? -2 : -1;
+			$totalPostVotes +=
+				voteType === 'up' ? (userVote === 'down' ? 2 : 1) : userVote === 'up' ? -2 : -1;
 			userVote = voteType;
+		}
+
+		if (!$user) {
+			addFlashMessage({
+				text: 'You need to be logged in to vote',
+				type: 'error',
+				icon: 'mdi:alert-circle-outline'
+			});
+			return;
+		}
+		if (userVote === null) {
+			const { error } = await supabase
+				.from('post_votes')
+				.delete()
+				.match({ post_id: post.id, user_id: $user.id });
+			if (error) {
+				console.error('Error deleting vote:', error);
+				addFlashMessage({
+					text: 'Failed to delete vote (Check console)',
+					type: 'error',
+					icon: 'mdi:alert-circle-outline'
+				});
+			}
+			return;
+		}
+		if (!post.id) return;
+		const { votes: newVotes } = await getPostVotes(post.id);
+		const previousVote = newVotes.find((vote) => vote.user_id === $user.id);
+		if (previousVote) {
+			const { error } = await supabase
+				.from('post_votes')
+				.update({ vote_type: userVote })
+				.match({ post_id: post.id, user_id: $user.id });
+			if (error) {
+				console.error('Error updating vote:', error);
+				addFlashMessage({
+					text: 'Failed to update vote (Check console)',
+					type: 'error',
+					icon: 'mdi:alert-circle-outline'
+				});
+			}
+			return;
+		}
+
+		const { error } = await supabase
+			.from('post_votes')
+			.upsert({ post_id: post.id, user_id: $user.id, vote_type: userVote });
+		if (error) {
+			console.error('Error voting:', error);
+			addFlashMessage({
+				text: 'Failed to vote (Check console)',
+				type: 'error',
+				icon: 'mdi:alert-circle-outline'
+			});
 		}
 	};
 </script>
@@ -62,7 +128,7 @@
 	{/if}
 
 	<div class="card-body p-6">
-		<UserChip {user} date={post.created_at || ''} />
+		<UserChip user={author} date={post.created_at || ''} />
 		<h2 class="card-title text-xl font-bold text-secondary">{post.title}</h2>
 		<p class="mt-2 break-words text-secondary">{post.content}</p>
 
@@ -76,7 +142,7 @@
 				<Icon icon="mdi:thumb-up" /> Upvote
 			</button>
 
-			<span class="text-secondary">{post.votes}</span>
+			<span class="text-secondary">{$totalPostVotes}</span>
 
 			<button
 				class={`btn btn-sm rounded-full px-4 py-2 transition-all ${
