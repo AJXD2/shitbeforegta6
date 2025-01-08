@@ -203,14 +203,7 @@
 		</div>
 	</section>
 	<!-- Comments Section -->
-	<section class="mt-8 flex w-full max-w-4xl flex-col items-center">
-		<div class="alert alert-warning flex items-center space-x-4 shadow-lg">
-			<div class="flex items-center space-x-4">
-				<Icon icon="mdi:alert-circle-outline" class="h-6 w-6" />
-				<span>Comment section isn't implemented yet.</span>
-			</div>
-		</div>
-	</section>
+
 	<section class="mt-8 flex w-full max-w-4xl flex-col items-center">
 		<h2 class="text-2xl font-bold text-primary">Comments</h2>
 		<div class="w-full max-w-4xl">
