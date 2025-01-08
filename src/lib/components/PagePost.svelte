@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PostType, PostVoteType, UserType } from '$lib';
+	import type { PostCommentType, PostType, PostVoteType, UserType } from '$lib';
 
 	export let post: PostType;
 	import { onMount } from 'svelte';
@@ -7,7 +7,8 @@
 	import { writable } from 'svelte/store';
 	import Icon from '@iconify/svelte';
 	import UserChip from './UserChip.svelte';
-	import { addFlashMessage, user } from '$lib/stores';
+	import { addFlashMessage, comments, user } from '$lib/stores';
+	import Comment from './Comment.svelte';
 
 	const author = writable<UserType | null>(null);
 	const votes = writable<PostVoteType[]>([]);
@@ -103,6 +104,46 @@
 			});
 		}
 	};
+
+	let comment: string;
+
+	const handleComment = async () => {
+		if (!$user) {
+			addFlashMessage({
+				text: 'You need to be logged in to comment',
+				type: 'error',
+				icon: 'mdi:alert-circle-outline'
+			});
+			return;
+		}
+
+		if (!comment) {
+			return;
+		}
+
+		const { data, error } = await supabase.from('comments').insert({
+			post_id: post.id,
+			user_id: $user.id,
+			content: comment
+		});
+		comments.forceRefresh();
+
+		if (error) {
+			console.error('Error commenting:', error);
+			addFlashMessage({
+				text: 'Failed to comment (Check console)',
+				type: 'error',
+				icon: 'mdi:alert-circle-outline'
+			});
+			return;
+		}
+
+		addFlashMessage({
+			text: 'Comment posted successfully',
+			type: 'success',
+			icon: 'mdi:check-circle-outline'
+		});
+	};
 </script>
 
 <div class="flex flex-col items-center bg-base-100 px-4 py-8 text-base-content md:px-12 lg:px-24">
@@ -176,19 +217,15 @@
 			<textarea
 				class="mt-4 w-full rounded-lg bg-base-200 p-4 text-lg text-secondary shadow-md"
 				placeholder="Write a comment..."
+				bind:value={comment}
+				on:submit={handleComment}
 			></textarea>
-			<button class="btn btn-primary mt-4">Post Comment</button>
+			<button class="btn btn-primary mt-4" on:click={handleComment}>Post Comment</button>
 		</div>
-
-		<dir class="mt-8 w-full max-w-4xl">
-			<div class="flex items-center space-x-4">
-				<UserChip user={author} date={new Date(Date.now()).toUTCString()} />
-			</div>
-			<p class="mt-2 text-secondary">
-				Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam nec nunc nec nunc. Nullam
-				nec nunc nec nunc. Nullam nec nunc nec nunc. Nullam nec nunc nec nunc. Nullam nec nunc nec
-				nunc. Nullam nec nunc nec nunc. Nullam nec nunc nec
-			</p>
-		</dir>
+		<div class="mt-8 w-full max-w-4xl">
+			{#each $comments as comment (comment.id)}
+				<Comment {comment} />
+			{/each}
+		</div>
 	</section>
 </div>

@@ -32,3 +32,10 @@ export type FlashMessage = {
 	type: 'success' | 'error' | 'info' | 'warning';
 	icon?: string;
 };
+
+export type PostCommentType = BaseEntity & {
+	id?: number;
+	post_id: string;
+	user_id: string;
+	content: string;
+};

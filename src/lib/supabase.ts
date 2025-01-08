@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from "$env/static/public"
-import type { PostType, PostVoteType, UserType } from "$lib";
+import type { PostCommentType, PostType, PostVoteType, UserType } from "$lib";
 import type Post from "./components/Post.svelte";
 import { addFlashMessage } from "./stores";
 const supabaseUrl = PUBLIC_SUPABASE_URL;
@@ -17,6 +17,16 @@ export const getAllPosts = async (): Promise<PostType[]> => {
 		}
         return [];
     } 
+
+export const getAllComments = async (): Promise<PostCommentType[]> => {
+	const { data: commentsData, error } = await supabase.from('comments').select('*');
+	if (error) {
+		console.error('Error fetching comments:', error.message);
+	} else {
+		return commentsData;
+	}
+	return [];
+};
 
 export const getUserProfile = async (userId: string): Promise<UserType | null> => {
 	const { data: userData, error } = await supabase.from('profiles').select('*').eq('id', userId).single();

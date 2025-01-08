@@ -1,13 +1,14 @@
 import { writable, type Writable } from 'svelte/store';
-import { getAllPosts, supabase } from '$lib/supabase';
+import { getAllComments, getAllPosts, supabase } from '$lib/supabase';
 import type { User } from '@supabase/supabase-js';
-import type { FlashMessage, PostType } from '$lib';
+import type {  PostCommentType,  FlashMessage,  PostType, UserType } from '$lib';
 
 export const user = writable<User | null>(null);
 export const flashMessages = writable<FlashMessage[]>([]);
 
 type RefreshableStore<T> = Writable<T> & {
   stop: () => void; 
+  forceRefresh: () => void;
 };
 
 type RefreshableStoreCallback<T> = {
@@ -26,17 +27,33 @@ function createRefreshableStore<T>(
     callback({ subscribe, set, stop: () => clearInterval(interval) });
   }, intervalMs);
 
+  const forceRefresh = () => {
+    callback({ subscribe, set, stop: () => clearInterval(interval) });
+  };
+
   return {
     subscribe,
     set,
     update,
     stop: () => clearInterval(interval),
+    forceRefresh,
   };
 }
 
 
-export const posts = createRefreshableStore(5000, async ({ set }) => {
+export const posts = createRefreshableStore<PostType[]>(5000, async ({ set }) => {
   set(await getAllPosts());
+});
+export const comments = createRefreshableStore<PostCommentType[]>(5000, async ({ set }) => {
+  set(await getAllComments());
+});
+export const profiles = createRefreshableStore<UserType[]>(5000, async ({ set }) => {
+  const { data, error } = await supabase.from('profiles').select('*');
+  if (error) {
+    console.error('Error fetching profiles:', error.message);
+  } else {
+    set(data);
+  }
 });
 
 export function addFlashMessage(
