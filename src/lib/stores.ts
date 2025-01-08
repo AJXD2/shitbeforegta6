@@ -1,10 +1,43 @@
-import { writable } from 'svelte/store';
-import { supabase } from '$lib/supabase';
+import { writable, type Writable } from 'svelte/store';
+import { getAllPosts, supabase } from '$lib/supabase';
 import type { User } from '@supabase/supabase-js';
-import type { FlashMessage } from '$lib';
+import type { FlashMessage, PostType } from '$lib';
 
 export const user = writable<User | null>(null);
 export const flashMessages = writable<FlashMessage[]>([]);
+
+type RefreshableStore<T> = Writable<T> & {
+  stop: () => void; 
+};
+
+type RefreshableStoreCallback<T> = {
+  subscribe: RefreshableStore<T>['subscribe'];
+  set: RefreshableStore<T>['set'];
+  stop: RefreshableStore<T>['stop'];
+};
+
+function createRefreshableStore<T>(
+  intervalMs: number,
+  callback: (storeControls: RefreshableStoreCallback<T>) => void,
+): RefreshableStore<T> {
+  const { subscribe, set, update } = writable<T>(undefined as unknown as T); 
+
+  const interval = setInterval(() => {
+    callback({ subscribe, set, stop: () => clearInterval(interval) });
+  }, intervalMs);
+
+  return {
+    subscribe,
+    set,
+    update,
+    stop: () => clearInterval(interval),
+  };
+}
+
+
+export const posts = createRefreshableStore(5000, async ({ set }) => {
+  set(await getAllPosts());
+});
 
 export function addFlashMessage(
     options: FlashMessage

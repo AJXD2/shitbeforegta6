@@ -6,15 +6,13 @@
 	import Post from '$lib/components/Post.svelte';
 	import CreatePost from '$lib/components/CreatePost.svelte';
 	import Icon from '@iconify/svelte';
-	import { flashMessages, user } from '$lib/stores';
+	import { flashMessages, posts, user } from '$lib/stores';
 
-	const posts = writable<PostType[]>([]);
 	let showModal = false;
 	let searchQuery = '';
 
 	onMount(async () => {
-		const allPosts = await getAllPosts();
-		posts.set(allPosts);
+		posts.set(await getAllPosts());
 	});
 
 	async function handleSearch() {
