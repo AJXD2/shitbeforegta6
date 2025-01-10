@@ -65,33 +65,42 @@
 		</a>
 	</div>
 	<div class="flex-none">
-		<!-- Legal Links-->
-		<a href="/tos" class="btn btn-ghost">Terms of Service</a>
-		<a href="/privacy" class="btn btn-ghost">Privacy Policy</a>
-		{#if $user}
-			<div class="dropdown dropdown-end">
+		<div class="dropdown dropdown-end">
+			{#if $user !== null}
 				<label tabindex="-1" for="avatar" class="avatar btn btn-circle btn-ghost">
 					<div class="w-10 rounded-full" id="avatar">
 						<img src={$user.user_metadata?.avatar_url || '/default-avatar.png'} alt="User Avatar" />
 					</div>
 				</label>
-				<ul
-					tabindex="-1"
-					class="menu dropdown-content mt-3 w-52 rounded-box bg-base-100 p-2 shadow"
+			{:else}
+				<label tabindex="-1" for="avatar" class="avatar btn btn-circle btn-ghost"
+					><Icon icon="mdi:menu" /></label
 				>
-					<li>
+			{/if}
+			<ul tabindex="-1" class="menu dropdown-content mt-3 w-52 rounded-box bg-base-100 p-2 shadow">
+				<li>
+					{#if $user !== null}
 						<button type="button" class="text-left" onclick={signOut}>Logout</button>
-						<button type="button" class="text-left" onclick={signInWithDiscord}
-							>Reauthenticate</button
+					{/if}
+					<button
+						type="button"
+						class="text-left"
+						onclick={$user === null ? toggleLoginModal : signInWithDiscord}
+						>{$user === null ? 'Login' : 'Reauthenticate'}</button
+					>
+					<p>
+						<Icon icon="material-symbols:link" /><a href="/privacy" class="text-secondary"
+							>Privacy Policy</a
 						>
-					</li>
-				</ul>
-			</div>
-		{:else}
-			<button class="btn btn-primary" type="button" onclick={toggleLoginModal}>
-				Sign in with Discord
-			</button>
-		{/if}
+					</p>
+					<p>
+						<Icon icon="material-symbols:link" /><a href="/tos" class="text-secondary"
+							>Terms of Service</a
+						>
+					</p>
+				</li>
+			</ul>
+		</div>
 	</div>
 </nav>
 
