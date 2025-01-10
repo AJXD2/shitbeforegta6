@@ -9,7 +9,8 @@
 	import { fetchAllPosts, posts } from '$lib/stores/posts';
 	import { addFlashMessage, flashMessages } from '$lib/stores/flashMessages';
 	import { user } from '$lib/stores/user';
-
+	import { pageTitle } from '$lib/stores/title';
+	pageTitle.set('Home');
 	let showModal = false;
 	let searchQuery = '';
 

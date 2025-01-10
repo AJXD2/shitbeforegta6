@@ -6,8 +6,9 @@
 	import { writable } from 'svelte/store';
 	import Post from '$lib/components/Post.svelte';
 	import PagePost from '$lib/components/PagePost.svelte';
-
+	import { pageTitle } from '$lib/stores/title';
 	export let data: PostType;
+	pageTitle.set(data.title);
 
 	let author = writable<UserType | null>(null);
 

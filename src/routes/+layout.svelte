@@ -10,7 +10,8 @@
 	import { fetchAllPosts, startPostsAutoRefresh } from '$lib/stores/posts';
 	import { fetchAllProfiles, startProfilesAutoRefresh } from '$lib/stores/profiles';
 	import { writable } from 'svelte/store';
-
+	import { pageTitle } from '$lib/stores/title';
+	pageTitle.set('Home');
 	onMount(() => {
 		fetchUser();
 		fetchAllPosts();
@@ -47,6 +48,7 @@
 	}
 </script>
 
+<title>{$pageTitle}</title>
 <!-- Persistent Warning Banner -->
 <div
 	class="fixed left-0 right-0 top-0 z-50 flex items-center justify-center gap-2 bg-warning py-2 text-warning-content shadow-md"
