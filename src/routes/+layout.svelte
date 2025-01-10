@@ -9,6 +9,7 @@
 	import { flashMessages } from '$lib/stores/flashMessages';
 	import { fetchAllPosts, startPostsAutoRefresh } from '$lib/stores/posts';
 	import { fetchAllProfiles, startProfilesAutoRefresh } from '$lib/stores/profiles';
+	import { writable } from 'svelte/store';
 
 	onMount(() => {
 		fetchUser();
@@ -39,6 +40,11 @@
 			messages.shift();
 		}
 	});
+
+	let showLoginModal = writable<boolean>(false);
+	function toggleLoginModal() {
+		$showLoginModal = !$showLoginModal;
+	}
 </script>
 
 <!-- Persistent Warning Banner -->
@@ -80,7 +86,7 @@
 				</ul>
 			</div>
 		{:else}
-			<button class="btn btn-primary" type="button" onclick={signInWithDiscord}>
+			<button class="btn btn-primary" type="button" onclick={toggleLoginModal}>
 				Sign in with Discord
 			</button>
 		{/if}
@@ -148,6 +154,31 @@
 		</div>
 	</div>
 </footer>
+
+<!-- Login Modal -->
+{#if $showLoginModal}
+	<div class="fixed inset-0 flex items-center justify-center bg-opacity-50 backdrop-blur-md">
+		<div class="w-full max-w-md rounded-lg bg-base-100 p-8 shadow-xl">
+			<h2 class="mb-4 text-xl font-semibold">Terms of Service & Privacy Policy</h2>
+			<p class="mb-4">
+				By continuing, you agree to our <a
+					href="/tos"
+					class="link link-primary"
+					target="_blank"
+					rel="noopener">Terms of Service</a
+				>
+				and
+				<a href="/privacy" class="link link-primary" target="_blank" rel="noopener"
+					>Privacy Policy</a
+				>.
+			</p>
+			<div class="flex justify-between gap-4">
+				<button onclick={toggleLoginModal} class="btn btn-outline">Cancel</button>
+				<button class="btn btn-primary" onclick={signInWithDiscord}>Login with Discord</button>
+			</div>
+		</div>
+	</div>
+{/if}
 
 <!-- Toast Notifications -->
 <div class="toast toast-end toast-bottom z-50 space-y-4">
