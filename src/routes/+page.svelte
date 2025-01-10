@@ -1,24 +1,22 @@
 <script lang="ts">
-	import { supabase, getAllPosts } from '$lib/supabase';
+	import { supabase } from '$lib/supabase';
 	import { onMount } from 'svelte';
 	import { writable } from 'svelte/store';
 	import type { PostType } from '$lib';
 	import Post from '$lib/components/Post.svelte';
 	import CreatePost from '$lib/components/CreatePost.svelte';
 	import Icon from '@iconify/svelte';
-	import { flashMessages, posts, user } from '$lib/stores';
+	import { fetchAllPosts, posts } from '$lib/stores/posts';
+	import { addFlashMessage, flashMessages } from '$lib/stores/flashMessages';
+	import { user } from '$lib/stores/user';
 
 	let showModal = false;
 	let searchQuery = '';
 
-	onMount(async () => {
-		posts.set(await getAllPosts());
-	});
-
 	async function handleSearch() {
 		const query = searchQuery.trim().toLowerCase();
 		if (!query) {
-			posts.set(await getAllPosts());
+			await fetchAllPosts();
 		} else {
 			posts.update((currentPosts) =>
 				currentPosts.filter(

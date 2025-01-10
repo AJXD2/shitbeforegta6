@@ -14,7 +14,7 @@ export type PostType = BaseEntity & {
 
 export type PostVoteType = BaseEntity & {
 	id?: number;
-	post_id: string;
+	post_id: number;
 	user_id: string;
 	vote_type: 'up' | 'down';
 };
@@ -35,7 +35,7 @@ export type FlashMessage = {
 
 export type PostCommentType = BaseEntity & {
 	id?: number;
-	post_id: string;
+	post_id: number;
 	user_id: string;
 	content: string;
 };

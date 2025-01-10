@@ -4,11 +4,18 @@
 	import { supabase } from '$lib/supabase';
 	import { onMount } from 'svelte';
 
-	import { fetchUser, flashMessages, logout, user } from '$lib/stores';
 	import Icon from '@iconify/svelte';
+	import { fetchUser, logout, user } from '$lib/stores/user';
+	import { flashMessages } from '$lib/stores/flashMessages';
+	import { fetchAllPosts, startPostsAutoRefresh } from '$lib/stores/posts';
+	import { fetchAllProfiles, startProfilesAutoRefresh } from '$lib/stores/profiles';
 
 	onMount(() => {
 		fetchUser();
+		fetchAllPosts();
+		fetchAllProfiles();
+		startPostsAutoRefresh(15000);
+		startProfilesAutoRefresh(15000);
 	});
 
 	async function signInWithDiscord() {

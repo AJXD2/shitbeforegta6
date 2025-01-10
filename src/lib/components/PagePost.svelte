@@ -3,100 +3,93 @@
 
 	export let post: PostType;
 	import { onMount } from 'svelte';
-	import { getPostVotes, getUserProfile, supabase } from '$lib/supabase';
-	import { writable } from 'svelte/store';
+	import { supabase } from '$lib/supabase';
+	import { get, writable } from 'svelte/store';
 	import Icon from '@iconify/svelte';
 	import UserChip from './UserChip.svelte';
-	import { addFlashMessage, comments, user } from '$lib/stores';
+	import PostService from '$lib/services/posts';
+	import CommentService from '$lib/services/comments';
 	import Comment from './Comment.svelte';
+	import { addFlashMessage } from '$lib/stores/flashMessages';
+	import { logout, user } from '$lib/stores/user';
 
+	import { fetchProfile } from '$lib/stores/profiles';
+	import { addComment, comments, getComments } from '$lib/stores/comments';
 	const author = writable<UserType | null>(null);
 	const votes = writable<PostVoteType[]>([]);
 	const totalPostVotes = writable<number>(0);
+	const userVote = writable<PostVoteType | null>(null);
+	const postComments = writable<PostCommentType[]>([]);
 
 	onMount(async () => {
-		author.set(await getUserProfile(post.user_id));
-		if (!post.id) return;
-		const { votes: postVotes, totalVotes, error } = await getPostVotes(post.id);
-		if (error) {
+		try {
+			author.set(await fetchProfile(post.user_id));
+
+			if (!post.id) return;
+
+			const postVotes = await PostService.votes.getPostVotes(post.id);
+
+			if (!postVotes) {
+				throw new Error('Failed to fetch votes');
+			}
+
+			votes.set(postVotes);
+			totalPostVotes.set(postVotes.length);
+
+			const currentUser = get(user);
+			const vote = postVotes.find((v) => v.user_id === currentUser?.id) || null;
+			userVote.set(vote);
+			comments.subscribe((containers) => {
+				const container = containers.find((comment) => comment.post_id === post.id);
+				postComments.set(container?.comments || []);
+			});
+			const fetchedComments = await getComments(post.id);
+		} catch (error) {
+			console.error(error);
 			addFlashMessage({
 				text: 'Failed to fetch votes (Check console)',
 				type: 'error',
 				icon: 'mdi:alert-circle-outline'
 			});
 		}
-		votes.set(postVotes);
-		totalPostVotes.set(totalVotes);
-		for (const vote of postVotes) {
-			if (vote.user_id === $user?.id) {
-				userVote = vote.vote_type;
-				break;
-			}
-		}
 	});
 
-	let userVote: 'up' | 'down' | null = null;
-
-	// Handle voting logic
 	const handleVote = async (voteType: 'up' | 'down') => {
-		if (voteType === userVote) {
-			// Undo current vote
-			$totalPostVotes += voteType === 'up' ? -1 : 1;
-			userVote = null;
-		} else {
-			// Switch/add vote
-			$totalPostVotes +=
-				voteType === 'up' ? (userVote === 'down' ? 2 : 1) : userVote === 'up' ? -2 : -1;
-			userVote = voteType;
-		}
+		const currentUser = get(user);
 
-		if (!$user) {
+		if (!post.id || !currentUser) {
 			addFlashMessage({
-				text: 'You need to be logged in to vote',
+				text: 'Authentication error. Please log back in.',
 				type: 'error',
-				icon: 'mdi:alert-circle-outline'
+				icon: 'material-symbols:warning'
 			});
-			return;
-		}
-		if (userVote === null) {
-			const { error } = await supabase
-				.from('post_votes')
-				.delete()
-				.match({ post_id: post.id, user_id: $user.id });
-			if (error) {
-				console.error('Error deleting vote:', error);
-				addFlashMessage({
-					text: 'Failed to delete vote (Check console)',
-					type: 'error',
-					icon: 'mdi:alert-circle-outline'
-				});
-			}
-			return;
-		}
-		if (!post.id) return;
-		const { votes: newVotes } = await getPostVotes(post.id);
-		const previousVote = newVotes.find((vote) => vote.user_id === $user.id);
-		if (previousVote) {
-			const { error } = await supabase
-				.from('post_votes')
-				.update({ vote_type: userVote })
-				.match({ post_id: post.id, user_id: $user.id });
-			if (error) {
-				console.error('Error updating vote:', error);
-				addFlashMessage({
-					text: 'Failed to update vote (Check console)',
-					type: 'error',
-					icon: 'mdi:alert-circle-outline'
-				});
-			}
+			await logout();
 			return;
 		}
 
-		const { error } = await supabase
-			.from('post_votes')
-			.upsert({ post_id: post.id, user_id: $user.id, vote_type: userVote });
-		if (error) {
-			console.error('Error voting:', error);
+		try {
+			const currentVote = get(userVote);
+			let newVoteType: PostVoteType | null = null;
+
+			if (currentVote?.vote_type === voteType) {
+				// Undo vote
+				totalPostVotes.update((tpv) => tpv + (voteType === 'up' ? -1 : 1));
+				await PostService.votes.removePostVote(post.id, currentUser.id);
+				userVote.set(null);
+			} else {
+				// Update or add vote
+				totalPostVotes.update((tpv) => {
+					if (currentVote?.vote_type === 'up') return tpv - 2;
+					if (currentVote?.vote_type === 'down') return tpv + 2;
+					return tpv + (voteType === 'up' ? 1 : -1);
+				});
+
+				newVoteType = { user_id: currentUser.id, post_id: post.id, vote_type: voteType };
+				userVote.set(newVoteType);
+				await PostService.votes.addPostVote(newVoteType);
+			}
+		} catch (error) {
+			console.error(error);
 			addFlashMessage({
 				text: 'Failed to vote (Check console)',
 				type: 'error',
@@ -116,20 +109,17 @@
 			});
 			return;
 		}
-
+		if (!post.id) return;
 		if (!comment) {
 			return;
 		}
 
-		const { data, error } = await supabase.from('comments').insert({
+		const newComment = await addComment({
+			content: comment,
 			post_id: post.id,
-			user_id: $user.id,
-			content: comment
+			user_id: $user.id
 		});
-		comments.forceRefresh();
-
-		if (error) {
-			console.error('Error commenting:', error);
+		if (!newComment) {
 			addFlashMessage({
 				text: 'Failed to comment (Check console)',
 				type: 'error',
@@ -143,6 +133,7 @@
 			type: 'success',
 			icon: 'mdi:check-circle-outline'
 		});
+		comment = '';
 	};
 </script>
 
@@ -188,14 +179,14 @@
 	<section class="mt-8 flex w-full max-w-4xl flex-col items-center">
 		<div class="flex items-center space-x-8">
 			<button
-				class={`btn btn-circle text-xl ${userVote === 'up' ? 'btn-success' : 'btn-secondary'}`}
+				class={`btn btn-circle text-xl ${($userVote?.vote_type || 'down') === 'up' ? 'btn-success' : 'btn-secondary'}`}
 				on:click={() => handleVote('up')}
 			>
 				<Icon icon="mdi:thumb-up" class="h-6 w-6" />
 			</button>
 			<span class="text-2xl font-bold text-secondary">Votes: {$totalPostVotes}</span>
 			<button
-				class={`btn btn-circle text-xl ${userVote === 'down' ? 'btn-error' : 'btn-secondary'}`}
+				class={`btn btn-circle text-xl ${($userVote?.vote_type || 'up') === 'down' ? 'btn-error' : 'btn-secondary'}`}
 				on:click={() => handleVote('down')}
 			>
 				<Icon icon="mdi:thumb-down" class="h-6 w-6" />
@@ -216,7 +207,7 @@
 			<button class="btn btn-primary mt-4" on:click={handleComment}>Post Comment</button>
 		</div>
 		<div class="mt-8 w-full max-w-4xl">
-			{#each $comments as comment (comment.id)}
+			{#each $postComments as comment (comment.id)}
 				<Comment {comment} />
 			{/each}
 		</div>

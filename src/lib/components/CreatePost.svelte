@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PostType } from '$lib';
-	import { addFlashMessage, user } from '$lib/stores';
+	import { addFlashMessage } from '$lib/stores/flashMessages';
 	import { supabase } from '$lib/supabase';
 
 	export let onCreatePost: (post: PostType) => void;
