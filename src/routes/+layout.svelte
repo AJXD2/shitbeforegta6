@@ -92,6 +92,63 @@
 	{@render children()}
 </main>
 
+<!-- Footer -->
+<footer
+	class="footer rounded-lg bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-8 text-white shadow-lg"
+>
+	<div
+		class="container mx-auto flex flex-col items-center justify-between space-y-4 lg:flex-row lg:space-y-0"
+	>
+		<div class="flex flex-col items-center space-y-2 lg:items-start">
+			<p class="text-lg font-semibold">Copyright © 2025 - All rights reserved by ShitBeforeGTA6</p>
+			<p class="text-sm text-opacity-80">
+				Made with ❤️ by
+				<a
+					href="https://ajxd2.dev"
+					class="link-hover link link-accent"
+					target="_blank"
+					rel="noopener"
+				>
+					AJXD2
+				</a>
+			</p>
+			<div class="flex space-x-6">
+				<a href="/tos" class="link-hover link link-accent">Terms of Service</a>
+				<a href="/privacy" class="link-hover link link-accent">Privacy Policy</a>
+			</div>
+		</div>
+		<div class="flex space-x-6 text-lg">
+			<a
+				href="https://github.com/ajxd2/shitbeforegta6"
+				class="tooltip tooltip-bottom"
+				data-tip="Source Code"
+				target="_blank"
+				rel="noopener"
+			>
+				<Icon icon="mdi:github" class="h-8 w-8 transition-colors hover:text-gray-100" />
+			</a>
+			<a
+				href="https://x.com/AJXD_2"
+				class="tooltip tooltip-bottom"
+				data-tip="My Twitter"
+				target="_blank"
+				rel="noopener"
+			>
+				<Icon icon="mdi:twitter" class="h-8 w-8 transition-colors hover:text-gray-100" />
+			</a>
+			<a
+				href="https://ajxd2.dev"
+				class="tooltip tooltip-bottom"
+				data-tip="My Website"
+				target="_blank"
+				rel="noopener"
+			>
+				<Icon icon="mdi:web" class="h-8 w-8 transition-colors hover:text-gray-100" />
+			</a>
+		</div>
+	</div>
+</footer>
+
 <!-- Toast Notifications -->
 <div class="toast toast-end toast-bottom z-50 space-y-4">
 	{#each $flashMessages as { id, text, type, icon } (id)}

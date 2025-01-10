@@ -83,13 +83,4 @@
 			<Post {post} />
 		{/each}
 	</div>
-
-	<footer class="mt-12 text-center text-sm text-base-content">
-		<p>
-			Made with ❤️ by
-			<a href="https://ajxd2.dev" class="link link-primary" target="_blank" rel="noopener">
-				AJXD2
-			</a>
-		</p>
-	</footer>
 </main>
