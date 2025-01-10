@@ -70,6 +70,9 @@
 				>
 					<li>
 						<button type="button" class="text-left" onclick={signOut}>Logout</button>
+						<button type="button" class="text-left" onclick={signInWithDiscord}
+							>Reauthenticate</button
+						>
 					</li>
 				</ul>
 			</div>
