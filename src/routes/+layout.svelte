@@ -57,6 +57,9 @@
 		</a>
 	</div>
 	<div class="flex-none">
+		<!-- Legal Links-->
+		<a href="/tos" class="btn btn-ghost">Terms of Service</a>
+		<a href="/privacy" class="btn btn-ghost">Privacy Policy</a>
 		{#if $user}
 			<div class="dropdown dropdown-end">
 				<label tabindex="-1" for="avatar" class="avatar btn btn-circle btn-ghost">
