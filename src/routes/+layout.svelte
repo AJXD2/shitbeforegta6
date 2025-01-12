@@ -1,23 +1,29 @@
 <script lang="ts">
+	// Imports
 	import '../app.css';
-	let { children } = $props();
 	import { supabase } from '$lib/supabase';
 	import { onMount } from 'svelte';
-
 	import Icon from '@iconify/svelte';
 	import { fetchUser, logout, user } from '$lib/stores/user';
 	import { flashMessages } from '$lib/stores/flashMessages';
-	import { fetchAllPosts, startPostsAutoRefresh } from '$lib/stores/posts';
+	import { fetchAllPosts, posts, startPostsAutoRefresh } from '$lib/stores/posts';
 	import { fetchAllProfiles, startProfilesAutoRefresh } from '$lib/stores/profiles';
 	import { writable } from 'svelte/store';
 	import { pageTitle } from '$lib/stores/title';
+	import CreatePost from '$lib/components/CreatePost.svelte';
+	import { createPostModal } from '$lib/stores/modals';
+
+	let { children } = $props();
 	pageTitle.set('Home');
+
+	let showLoginModal = writable<boolean>(false);
+
 	onMount(() => {
 		fetchUser();
 		fetchAllPosts();
 		fetchAllProfiles();
-		startPostsAutoRefresh(15000);
-		startProfilesAutoRefresh(15000);
+		startPostsAutoRefresh(60000);
+		startProfilesAutoRefresh(60000);
 	});
 
 	async function signInWithDiscord() {
@@ -36,19 +42,29 @@
 		}
 	}
 
+	function toggleLoginModal() {
+		$showLoginModal = !$showLoginModal;
+	}
+
 	flashMessages.subscribe((messages) => {
 		if (messages.length > 3) {
 			messages.shift();
 		}
 	});
-
-	let showLoginModal = writable<boolean>(false);
-	function toggleLoginModal() {
-		$showLoginModal = !$showLoginModal;
+	function handleCreatePost() {
+		if ($user === null) {
+			flashMessages.update((messages) => [
+				...messages,
+				{ id: Date.now(), text: 'You must be logged in to create a post.', type: 'error' }
+			]);
+		} else {
+			createPostModal.set(true);
+		}
 	}
 </script>
 
 <title>{$pageTitle}</title>
+
 <!-- Persistent Warning Banner -->
 <div
 	class="fixed left-0 right-0 top-0 z-50 flex items-center justify-center gap-2 bg-warning py-2 text-warning-content shadow-md"
@@ -60,47 +76,49 @@
 <!-- Navbar -->
 <nav class="navbar mt-12 bg-base-100 shadow-lg">
 	<div class="flex-1">
-		<a href="/" class="btn btn-ghost text-xl font-bold normal-case text-primary">
-			ShitBeforeGTA6
-		</a>
+		<a href="/" class="btn btn-ghost text-xl font-bold normal-case text-primary">ShitBeforeGTA6</a>
 	</div>
 	<div class="flex-none">
-		<div class="dropdown dropdown-end">
-			{#if $user !== null}
+		{#if $user !== null}
+			<button type="button" class="btn btn-primary btn-sm mr-4" onclick={handleCreatePost}>
+				<span class="hidden sm:inline">Create Post</span>
+				<Icon icon="material-symbols:add" class="h-5 w-5" />
+			</button>
+			<div class="dropdown dropdown-end">
 				<label tabindex="-1" for="avatar" class="avatar btn btn-circle btn-ghost">
 					<div class="w-10 rounded-full" id="avatar">
 						<img src={$user.user_metadata?.avatar_url || '/default-avatar.png'} alt="User Avatar" />
 					</div>
 				</label>
-			{:else}
-				<label tabindex="-1" for="avatar" class="avatar btn btn-circle btn-ghost"
-					><Icon icon="mdi:menu" /></label
+
+				<ul
+					tabindex="-1"
+					class="menu dropdown-content mt-3 w-52 rounded-box bg-base-100 p-2 shadow"
 				>
-			{/if}
-			<ul tabindex="-1" class="menu dropdown-content mt-3 w-52 rounded-box bg-base-100 p-2 shadow">
-				<li>
-					{#if $user !== null}
-						<button type="button" class="text-left" onclick={signOut}>Logout</button>
-					{/if}
-					<button
-						type="button"
-						class="text-left"
-						onclick={$user === null ? toggleLoginModal : signInWithDiscord}
-						>{$user === null ? 'Login' : 'Reauthenticate'}</button
-					>
-					<p>
-						<Icon icon="material-symbols:link" /><a href="/privacy" class="text-secondary"
-							>Privacy Policy</a
+					<li>
+						{#if $user !== null}
+							<button type="button" class="text-left" onclick={signOut}>Logout</button>
+						{/if}
+						<button
+							type="button"
+							class="text-left"
+							onclick={$user === null ? toggleLoginModal : signInWithDiscord}
 						>
-					</p>
-					<p>
-						<Icon icon="material-symbols:link" /><a href="/tos" class="text-secondary"
-							>Terms of Service</a
-						>
-					</p>
-				</li>
-			</ul>
-		</div>
+							{$user === null ? 'Login' : 'Reauthenticate'}
+						</button>
+					</li>
+				</ul>
+			</div>
+		{:else}
+			<button
+				type="button"
+				class="avatar btn btn-circle btn-ghost"
+				onclick={toggleLoginModal}
+				onkeydown={(e) => e.key === 'Enter' && toggleLoginModal()}
+			>
+				<Icon icon="mdi:account-circle" class="h-10 w-10" />
+			</button>
+		{/if}
 	</div>
 </nav>
 
@@ -124,10 +142,8 @@
 					href="https://ajxd2.dev"
 					class="link-hover link link-accent"
 					target="_blank"
-					rel="noopener"
+					rel="noopener">AJXD2</a
 				>
-					AJXD2
-				</a>
 			</p>
 			<div class="flex space-x-6">
 				<a href="/tos" class="link-hover link link-accent">Terms of Service</a>
@@ -172,12 +188,8 @@
 		<div class="w-full max-w-md rounded-lg bg-base-100 p-8 shadow-xl">
 			<h2 class="mb-4 text-xl font-semibold">Terms of Service & Privacy Policy</h2>
 			<p class="mb-4">
-				By continuing, you agree to our <a
-					href="/tos"
-					class="link link-primary"
-					target="_blank"
-					rel="noopener">Terms of Service</a
-				>
+				By continuing, you agree to our
+				<a href="/tos" class="link link-primary" target="_blank" rel="noopener">Terms of Service</a>
 				and
 				<a href="/privacy" class="link link-primary" target="_blank" rel="noopener"
 					>Privacy Policy</a
@@ -191,6 +203,27 @@
 	</div>
 {/if}
 
+<!-- Create Post Modal -->
+{#if $createPostModal}
+	<div class="modal modal-open">
+		<div class="modal-box w-11/12 max-w-2xl bg-base-100 shadow-xl">
+			<CreatePost
+				onCreatePost={(post) => {
+					posts.update((existingPosts) => [post, ...existingPosts]);
+					createPostModal.set(false);
+				}}
+			/>
+			<div class="modal-action">
+				<button
+					class="btn btn-primary"
+					onclick={() => {
+						createPostModal.set(false);
+					}}>Close</button
+				>
+			</div>
+		</div>
+	</div>
+{/if}
 <!-- Toast Notifications -->
 <div class="toast toast-end toast-bottom z-50 space-y-4">
 	{#each $flashMessages as { id, text, type, icon } (id)}

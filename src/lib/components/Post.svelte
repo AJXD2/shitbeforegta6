@@ -126,7 +126,7 @@
 					: 'btn-primary'}"
 				on:click={() => handleVote('up')}
 			>
-				<Icon icon="mdi:thumb-up" /> Upvote
+				<Icon icon="mdi:thumb-up" />
 			</button>
 
 			<span class="text-secondary">{$totalPostVotes}</span>
@@ -137,7 +137,7 @@
 					: 'btn-primary'}"
 				on:click={() => handleVote('down')}
 			>
-				<Icon icon="mdi:thumb-down" /> Downvote
+				<Icon icon="mdi:thumb-down" />
 			</button>
 		</div>
 	</div>

@@ -16,6 +16,19 @@ export const fetchAllPosts = async () => {
     }
 };
 
+export const searchPosts = async (searchTerm: string): Promise<PostType[]> => {
+    const { data: posts, error } = await supabase
+        .from("posts")
+        .select("*")
+        .ilike("title", `%${searchTerm}%`).ilike("content", `%${searchTerm}%`);
+        if (!error) {
+            return posts || [];
+        } else {
+            console.error("Failed to fetch posts:", error.message);
+        }
+        return [];
+    }
+
 export const fetchPost = async (id: number) => {
     try {
         const post = await get(id);
