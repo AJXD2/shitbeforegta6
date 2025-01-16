@@ -72,24 +72,26 @@
 	<!-- User Posts -->
 	<div class="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
 		{#each $userPosts as post}
-			{#if post.id === $featuredPost?.id}
-				<div
-					class="featured-post relative mb-4 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-500 p-4 shadow-lg"
-				>
-					<!-- Featured Badge -->
+			<div class="mb-6 break-inside-avoid">
+				{#if post.id === $featuredPost?.id}
 					<div
-						class="absolute right-2 top-2 z-50 flex items-center gap-1 rounded-full bg-yellow-400 px-2 py-1 text-xs font-bold text-black shadow-md"
+						class="featured-post relative mb-4 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-500 p-4 shadow-lg"
 					>
-						<Icon icon="material-symbols:star" class="h-4 w-4" />
-						FEATURED
+						<!-- Featured Badge -->
+						<div
+							class="absolute right-2 top-2 z-50 flex items-center gap-1 rounded-full bg-yellow-400 px-2 py-1 text-xs font-bold text-black shadow-md"
+						>
+							<Icon icon="material-symbols:star" class="h-4 w-4" />
+							FEATURED
+						</div>
+						<Post {post} />
 					</div>
-					<Post {post} />
-				</div>
-			{:else}
-				<div class="regular-post mb-4">
-					<Post {post} />
-				</div>
-			{/if}
+				{:else}
+					<div class="regular-post mb-4">
+						<Post {post} />
+					</div>
+				{/if}
+			</div>
 		{/each}
 	</div>
 </div>
