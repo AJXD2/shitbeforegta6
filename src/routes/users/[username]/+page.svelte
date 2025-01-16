@@ -11,9 +11,14 @@
 	import { onMount } from 'svelte';
 	import PostService from '$lib/services/posts';
 	import Icon from '@iconify/svelte';
+	import { userProfile } from '$lib/stores/profiles';
+
 	pageTitle.set(`@${data.full_name}`);
+
+	const userPage = writable<UserType | null>(null);
 	const userPosts = writable<PostType[]>([]);
 	const featuredPost = writable<PostType | null>(null);
+
 	onMount(async () => {
 		PostService.getUserPosts(data.id).then((posts) => {
 			posts.sort(
@@ -27,6 +32,14 @@
 
 			featuredPost.set(posts.find((post) => post.id === data.featured_post) || null);
 		});
+
+		if (data.id == $user?.id) {
+			userProfile.subscribe((profile) => {
+				userPage.set(profile);
+			});
+		} else {
+			userPage.set(data);
+		}
 	});
 	async function handleEdit() {
 		profileEditModal.set(true);
@@ -41,15 +54,15 @@
 		<div class="card mt-6 w-80 bg-base-100 shadow-xl md:w-1/3">
 			<figure class="px-10 pt-10">
 				<img
-					src={data.avatar_url}
+					src={$userPage?.avatar_url}
 					alt="User avatar"
 					class="h-24 w-24 rounded-full border-2 border-primary"
 				/>
 			</figure>
 			<div class="card-body items-center text-center">
-				<h2 class="card-title">{data.full_name}</h2>
+				<h2 class="card-title">{$userPage?.full_name}</h2>
 				<p class="text-sm text-gray-500">
-					Last updated: {new Date(data?.updated_at || '').toLocaleDateString('en-US', {
+					Last updated: {new Date($userPage?.updated_at || '').toLocaleDateString('en-US', {
 						weekday: 'long',
 						year: 'numeric',
 						month: 'long',
@@ -58,7 +71,7 @@
 				</p>
 
 				<p class="mt-2 text-sm text-gray-500">
-					{data.bio || 'No bio available.'}
+					{$userPage?.bio || 'No bio available.'}
 				</p>
 				{#if $user?.id === data.id}
 					<div class="card-actions mt-4">
