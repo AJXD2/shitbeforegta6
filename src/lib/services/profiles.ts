@@ -1,6 +1,10 @@
 import { supabase } from "$lib/supabase";
 import type { UserType } from "$lib";
 
+
+
+
+
 export const getAll = async (): Promise<UserType[]> => {
     const { data: userData, error} = await supabase.from("profiles").select("*")
     if (error) {
@@ -24,12 +28,25 @@ export const get = async (userId: string): Promise<UserType | null> => {
     return null;
 }
 
-export const update = async (userId: string, profile: UserType): Promise<UserType | null> => {
-    const { data: userData, error } = await supabase.from('profiles').upsert({ ...profile, id: userId }).single();
+export const getByUsername = async (username: string): Promise<UserType | null> => {
+    const { data: userData, error } = await supabase.from('profiles').select('*').eq('full_name', username).single();
+    if (error) {
+        console.error('Error fetching user:', error.message);
+    } else {
+        if (!userData) {
+            return null;
+        }
+        return userData as UserType;
+    }
+    return null;
+}
+
+export const update = async (userId: string, profile: Partial<UserType>): Promise<UserType | null> => {
+    const { error } = await supabase.from('profiles').update(profile).eq('id', userId);
     if (error) {
         console.error('Error updating user:', error.message);
     } else {
-        return userData as UserType;
+        return await get(userId);
     }
     return null;
 }
@@ -46,6 +63,7 @@ export const remove = async (userId: string): Promise<boolean> => {
 export default {
     get,
     getAll,
+    getByUsername,
     update,
     remove
 }

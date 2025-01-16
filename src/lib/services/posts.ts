@@ -76,7 +76,12 @@ export const addPostVote = async (vote: PostVoteType): Promise<PostVoteType | nu
     return null
 }
 
-export default { get, getAll, create, update, remove, votes: {
+export const getUserPosts = async (user_id: string): Promise<PostType[]> => {
+    const { data: postsData, error } = await supabase.from('posts').select('*').eq('user_id', user_id);
+    return error ? handleSupabaseError(error, "fetching") || [] : postsData || [];
+};
+
+export default { get,getUserPosts, getAll, create, update, remove, votes: {
     getPostVotes,
     updatePostVotes,
     removePostVote,

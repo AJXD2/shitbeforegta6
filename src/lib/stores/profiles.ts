@@ -27,7 +27,21 @@ export const fetchProfile = async (userId: string): Promise<UserType | null> => 
     return profile;
 };
 
-
+export const fetchProfileByusername = async (username: string): Promise<UserType | null> => {
+    const profile = await ProfileService.getByUsername(username);
+    profiles.update((data) => {
+        const existingProfileIndex = data.findIndex((v) => v.full_name === username);
+        if (existingProfileIndex !== -1) {
+            if (profile) {
+                data[existingProfileIndex] = profile;
+            }
+        } else if (profile) {
+            data.push(profile);
+        }
+        return data;
+    });
+    return profile;
+};
 
 user.subscribe(async (user) => {
     if (user) {

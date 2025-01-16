@@ -8,7 +8,7 @@
 	import Icon from '@iconify/svelte';
 	import UserChip from './UserChip.svelte';
 	import PostService from '$lib/services/posts';
-	import CommentService from '$lib/services/comments';
+	import ProfileService from '$lib/services/profiles';
 	import Comment from './Comment.svelte';
 	import { addFlashMessage } from '$lib/stores/flashMessages';
 	import { logout, user } from '$lib/stores/user';
@@ -43,7 +43,8 @@
 				const container = containers.find((comment) => comment.post_id === post.id);
 				postComments.set(container?.comments || []);
 			});
-			const fetchedComments = await getComments(post.id);
+
+			isFeatured.set($author?.featured_post === post.id);
 		} catch (error) {
 			console.error(error);
 			addFlashMessage({
@@ -135,11 +136,47 @@
 		});
 		comment = '';
 	};
+	async function toggleFeature() {
+		if (!$author) return;
+		if ($isFeatured) {
+			await ProfileService.update($author?.id || '', {
+				featured_post: null
+			});
+		} else {
+			await ProfileService.update($author?.id || '', {
+				featured_post: post.id
+			});
+		}
+		isFeatured.set(!$isFeatured);
+	}
+	const isFeatured = writable<boolean>(false);
 </script>
 
-<div class="flex flex-col items-center bg-base-100 px-4 py-8 text-base-content md:px-12 lg:px-24">
+<div
+	class="relative flex flex-col items-center bg-base-100 px-4 py-8 text-base-content md:px-12 lg:px-24"
+>
+	<!-- Featured Button -->
+	{#if $author?.id === $user?.id}
+		<button
+			class={`btn btn-sm absolute right-4 top-4 flex items-center gap-2 shadow-lg ${
+				$isFeatured ? 'btn-success' : 'btn-warning'
+			}`}
+			on:click={toggleFeature}
+		>
+			<Icon icon={$isFeatured ? 'mdi:star-check' : 'mdi:star'} class="h-5 w-5" />
+			{$isFeatured ? 'Featured' : 'Feature'}
+		</button>
+	{:else if $isFeatured}
+		<span
+			class="badge absolute right-4 top-4 flex items-center gap-2 bg-gradient-to-r from-purple-500 to-indigo-500 p-3 text-white shadow-lg"
+		>
+			<Icon icon="mdi:star" class="h-5 w-5" />
+			Featured
+		</span>
+	{/if}
+
 	<!-- Header -->
-	<section class="w-full max-w-5xl">
+	<section class="w-full max-w-5xl pt-5">
 		<header class="text-center">
 			<h1 class="mb-4 text-4xl font-bold text-primary md:text-5xl">{post.title}</h1>
 			<div class="flex items-center justify-center space-x-4 text-secondary">
@@ -152,11 +189,7 @@
 	{#if post.media_url}
 		<section class="my-6 w-full max-w-4xl">
 			{#if post.media_type === 'image'}
-				<img
-					src={post.media_url}
-					alt="Post Media"
-					class="w-full rounded-lg shadow-md transition-transform duration-300 hover:scale-105"
-				/>
+				<img src={post.media_url} alt="Post Media" class="w-full rounded-lg shadow-md" />
 			{:else if post.media_type === 'youtube'}
 				<iframe
 					title="YouTube video player"

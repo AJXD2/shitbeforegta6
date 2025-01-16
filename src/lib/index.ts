@@ -22,8 +22,10 @@ export type PostVoteType = BaseEntity & {
 export type UserType = {
 	id: string;
 	avatar_url: string;
+	bio: string;
 	full_name: string;
-	updated_at: string;
+	featured_post: number | null;
+	updated_at?: string;
 };
 
 export type FlashMessage = {
