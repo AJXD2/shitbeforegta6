@@ -1,7 +1,6 @@
 <script lang="ts">
 	import type { UserType } from '$lib';
 	import Post from '$lib/components/Post.svelte';
-	import ProfileEditForm from '$lib/components/ProfileEditForm.svelte';
 	import { profileEditModal } from '$lib/stores/modals';
 	import { pageTitle } from '$lib/stores/title';
 	import { user } from '$lib/stores/user';
@@ -12,6 +11,7 @@
 	import PostService from '$lib/services/posts';
 	import Icon from '@iconify/svelte';
 	import { userProfile } from '$lib/stores/profiles';
+	import ProfileEditModal from '$lib/components/ProfileEditModal.svelte';
 
 	pageTitle.set(`@${data.full_name}`);
 
@@ -110,19 +110,5 @@
 </div>
 
 {#if $profileEditModal}
-	<div class="modal modal-open">
-		<div class="modal-box w-11/12 max-w-2xl bg-base-100 shadow-xl">
-			<div class="modal-body">
-				<ProfileEditForm user={data} />
-			</div>
-			<div class="modal-action">
-				<button
-					class="btn btn-primary"
-					onclick={() => {
-						profileEditModal.set(false);
-					}}>Close</button
-				>
-			</div>
-		</div>
-	</div>
+	<ProfileEditModal user={$userPage || data} />
 {/if}

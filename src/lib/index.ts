@@ -1,4 +1,3 @@
-
 export type BaseEntity = {
 	created_at?: string;
 };

@@ -3,7 +3,6 @@
 
 	export let post: PostType;
 	import { onMount } from 'svelte';
-	import { supabase } from '$lib/supabase';
 	import { get, writable } from 'svelte/store';
 	import Icon from '@iconify/svelte';
 	import UserChip from './UserChip.svelte';
@@ -14,7 +13,7 @@
 	import { logout, user } from '$lib/stores/user';
 
 	import { fetchProfile } from '$lib/stores/profiles';
-	import { addComment, comments, getComments } from '$lib/stores/comments';
+	import { addComment, comments } from '$lib/stores/comments';
 	const author = writable<UserType | null>(null);
 	const votes = writable<PostVoteType[]>([]);
 	const totalPostVotes = writable<number>(0);

@@ -15,7 +15,7 @@
 	import { goto } from '$app/navigation';
 
 	let { children } = $props();
-	pageTitle.set('Home');
+	pageTitle.set('ShitBeforeGTA6');
 
 	let showLoginModal = writable<boolean>(false);
 
@@ -88,7 +88,7 @@
 			<div class="dropdown dropdown-end">
 				<label tabindex="-1" for="avatar" class="avatar btn btn-circle btn-ghost">
 					<div class="w-10 rounded-full" id="avatar">
-						<img src={$user.user_metadata?.avatar_url || '/default-avatar.png'} alt="User Avatar" />
+						<img src={$userProfile?.avatar_url || ''} alt="User Avatar" />
 					</div>
 				</label>
 
