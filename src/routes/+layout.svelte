@@ -7,14 +7,15 @@
 	import { fetchUser, logout, user } from '$lib/stores/user';
 	import { flashMessages } from '$lib/stores/flashMessages';
 	import { fetchAllPosts, posts, startPostsAutoRefresh } from '$lib/stores/posts';
-	import { fetchAllProfiles, startProfilesAutoRefresh } from '$lib/stores/profiles';
+	import { fetchAllProfiles, startProfilesAutoRefresh, userProfile } from '$lib/stores/profiles';
 	import { writable } from 'svelte/store';
 	import { pageTitle } from '$lib/stores/title';
 	import CreatePost from '$lib/components/CreatePost.svelte';
 	import { createPostModal } from '$lib/stores/modals';
+	import { goto } from '$app/navigation';
 
 	let { children } = $props();
-	pageTitle.set('Home');
+	pageTitle.set('ShitBeforeGTA6');
 
 	let showLoginModal = writable<boolean>(false);
 
@@ -87,7 +88,7 @@
 			<div class="dropdown dropdown-end">
 				<label tabindex="-1" for="avatar" class="avatar btn btn-circle btn-ghost">
 					<div class="w-10 rounded-full" id="avatar">
-						<img src={$user.user_metadata?.avatar_url || '/default-avatar.png'} alt="User Avatar" />
+						<img src={$userProfile?.avatar_url || ''} alt="User Avatar" />
 					</div>
 				</label>
 
@@ -96,16 +97,18 @@
 					class="menu dropdown-content mt-3 w-52 rounded-box bg-base-100 p-2 shadow"
 				>
 					<li>
-						{#if $user !== null}
-							<button type="button" class="text-left" onclick={signOut}>Logout</button>
-						{/if}
 						<button
-							type="button"
 							class="text-left"
-							onclick={$user === null ? toggleLoginModal : signInWithDiscord}
+							onclick={() => {
+								goto(`/users/${$userProfile?.full_name}`);
+							}}
 						>
-							{$user === null ? 'Login' : 'Reauthenticate'}
+							<Icon icon="mdi:account-circle" class="h-5 w-5" /> Profile
 						</button>
+
+						<button type="button" class="text-left text-red-600" onclick={signOut}
+							><Icon icon="mdi:logout" class="h-5 w-5" />Logout</button
+						>
 					</li>
 				</ul>
 			</div>

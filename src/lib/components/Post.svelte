@@ -89,28 +89,23 @@
 	};
 </script>
 
-<article
-	class="card bg-base-100 shadow-lg transition-all duration-300 hover:shadow-xl dark:bg-neutral"
->
-	{#if post.media_url}
-		{#if post.media_type === 'image'}
-			<img
-				src={post.media_url}
-				alt="Post"
-				class="h-auto w-full rounded-t-lg object-cover transition-all duration-300 hover:scale-105"
-			/>
-		{:else if post.media_type === 'youtube'}
-			<iframe
-				title="YouTube video player"
-				src={`https://www.youtube.com/embed/${post.media_url}`}
-				frameborder="0"
-				allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-				allowfullscreen
-				class="h-64 w-full rounded-t-lg transition-all duration-300 hover:scale-105"
-			></iframe>
+<article class="card bg-base-100 shadow-lg dark:bg-neutral">
+	<a href="/posts/{post.id}">
+		{#if post.media_url}
+			{#if post.media_type === 'image'}
+				<img src={post.media_url} alt="Post" class="h-auto w-full rounded-t-lg object-cover" />
+			{:else if post.media_type === 'youtube'}
+				<iframe
+					title="YouTube video player"
+					src={`https://www.youtube.com/embed/${post.media_url}`}
+					frameborder="0"
+					allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+					allowfullscreen
+					class="h-64 w-full rounded-t-lg"
+				></iframe>
+			{/if}
 		{/if}
-	{/if}
-
+	</a>
 	<div class="card-body p-6">
 		<UserChip user={author} date={post.created_at || ''} />
 

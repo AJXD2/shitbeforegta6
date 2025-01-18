@@ -22,20 +22,22 @@
 	}
 </script>
 
-<div class="mb-4 flex items-center gap-4">
-	<div class="group avatar relative">
-		<div class="h-12 w-12 overflow-hidden rounded-full shadow-lg">
-			<img
-				src={$user?.avatar_url || 'https://via.placeholder.com/150'}
-				alt="User Avatar"
-				class="transition-all duration-300 group-hover:rotate-3 group-hover:scale-110"
-			/>
+<a href={`/users/${$user?.full_name}`}>
+	<div class="mb-4 flex items-center gap-4">
+		<div class="group avatar relative">
+			<div class="h-12 w-12 overflow-hidden rounded-full shadow-lg">
+				<img
+					src={$user?.avatar_url || 'https://via.placeholder.com/150'}
+					alt="User Avatar"
+					class="transition-all duration-300 group-hover:rotate-3 group-hover:scale-110"
+				/>
+			</div>
+		</div>
+		<div>
+			<h3 class="text-lg font-semibold text-primary">{$user?.full_name || ''}</h3>
+			{#if date}
+				<p class="text-sm text-gray-500">{formatDate(date)}</p>
+			{/if}
 		</div>
 	</div>
-	<div>
-		<h3 class="text-lg font-semibold text-primary">{$user?.full_name || ''}</h3>
-		{#if date}
-			<p class="text-sm text-gray-500">{formatDate(date)}</p>
-		{/if}
-	</div>
-</div>
+</a>
